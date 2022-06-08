@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<head>
+    <link rel = "stylesheet" href = "styles.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Time Zone Checker</title>
+
+</head>
+  
+<body> 
+        
+
+
+    <div class="JointBorder">
+      <div class="topnav">
+        <a href="timezones.html" target="_parent">Home</a>
+        <a href="about_us.html" target="_parent">About us</a>
+        <a class="active" href="qa.html" target="_parent">Q&A</a>
+      </div>
+        <br>
+
+        <div class="qa_about_us">
+          <p>This is the FAQ section</p>
+          <br>
+          <br>
+          <button class="accordion">Some timezones are offset by 1 hour, why is that?</button>
+          <div class="panel">
+            <p class="answer">That is because the clock does not account for daylight savings time.</p>
+          </div>
+          <button class="accordion">How familiar are you with HTML, CSS and JavaScript?</button>
+          <div class="panel">
+            <p class="answer">The knowledge between our team members is very limited – some have absolutely no experience, 
+			some have basic understanding of HTML and CSS. None of the team members have worked
+			with JavaScript in the past.</p>
+          </div>
+          <button class="accordion">Is this your first hackathon?</button>
+          <div class="panel">
+            <p class="answer">Yes, for all of the team members. Though we were anxious and overwhelemd at first, the
+			community was very welcoming and supportive as well as the hackathon itself was
+			rewarding skill-wise.</p>
+          </div>
+		   <button class="accordion">What sources did you use for the website?</button>
+          <div class="panel">
+            <p class="answer">The map template – <a href="https://www.amcharts.com/">amCharts</a>
+			<br>
+			General HTML, CSS and JavaScript help – <a href="https://www.w3schools.com/">W3Schools</a>
+			</p>
+          </div>
+        </div>
+    </div>
+    <script>
+      var acc = document.getElementsByClassName("accordion");
+      var i;
+      
+      for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+          this.classList.toggle("active");
+          var panel = this.nextElementSibling;
+          if (panel.style.display === "block") {
+            panel.style.display = "none";
+          } else {
+            panel.style.display = "block";
+          }
+        });
+      }
+      </script>
+
+</body>
+
+  
+</html>

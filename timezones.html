@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<head>
+    <link rel = "stylesheet" href = "styles.css"/>
+    <!-- Styles -->
+    <style>
+        #chartdiv {
+            width: 100%;
+            height: 600px;
+        }
+    
+    </style>
+	    <title>Time Zone Checker</title>
+
+
+
+    <!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/maps.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/geodata/worldTimeZoneAreasHigh.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/geodata/worldTimeZonesHigh.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
+<!-- Chart code -->
+<script>
+
+
+
+
+	am4core.ready(function() {
+	
+	// animacijos
+	am4core.useTheme(am4themes_animated);
+
+	// Create map instance
+	var chart = am4core.create("chartdiv", am4maps.MapChart);
+
+	// Set map definition
+	chart.geodata = am4geodata_worldTimeZoneAreasHigh;
+
+	// Set projection
+	chart.projection = new am4maps.projections.Miller();
+	chart.panBehavior = "none";
+
+	// Create map polygon series
+	var polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
+
+	// Make map load polygon (like country names) data from GeoJSON
+	polygonSeries.useGeodata = true;
+	polygonSeries.calculateVisualCenter = true;
+
+	var polygonTemplate = polygonSeries.mapPolygons.template;
+	polygonTemplate.fillOpacity = 0.8;
+	polygonTemplate.nonScalingStroke = true;
+	polygonTemplate.strokeWidth = 1;
+	// saliu konturas
+	polygonTemplate.stroke = am4core.color("#508AA8");
+	polygonTemplate.strokeOpacity = 1;
+
+	//Saliu spalva
+	polygonTemplate.adapter.add("fill", function(fill, target) {
+		if (target.dataItem.index > 0) {
+			return am4core.color("#508AA8");
+		}
+		return fill;
+	})
+
+	// Create map polygon series
+	var boundsSeries = chart.series.push(new am4maps.MapPolygonSeries());
+	boundsSeries.geodata = am4geodata_worldTimeZonesHigh;
+	boundsSeries.useGeodata = true;
+
+	//zemelapio fonas
+	boundsSeries.mapPolygons.template.fill = am4core.color("#031927");
+	boundsSeries.mapPolygons.template.fillOpacity = 0;
+	boundsSeries.mapPolygons.template.nonScalingStroke = true;
+	boundsSeries.mapPolygons.template.strokeWidth = 0.5;
+	boundsSeries.mapPolygons.template.strokeOpacity = 1;
+
+	//laiko juostu konturas
+	boundsSeries.mapPolygons.template.stroke =  am4core.color("#508AA8");
+	boundsSeries.tooltipText = "{id}";
+
+
+	var hs = polygonTemplate.states.create("hover");
+	hs.properties.fillOpacity = 1;
+
+	var bhs = boundsSeries.mapPolygons.template.states.create("hover");
+	bhs.properties.fillOpacity = 0.3;
+	
+	// nelieciau
+	boundsSeries.mapPolygons.template.events.on("hit", function(ev)
+		{
+			startClocks();
+
+			function startClocks()
+			{
+				var zone = ev.target.dataItem.dataContext.name;
+				timezoneHours = parseInt(zone[4])*10 + parseInt(zone[5]);
+				timezoneMinutes= parseInt(zone[7])*10 + parseInt(zone[8]);
+
+				if(zone[3]=='-')
+				{
+					timezoneHours=timezoneHours*-1;
+					timezoneMinutes=timezoneMinutes*-1;
+				}
+
+				window.arrClocks = [];
+				window.arrOffsets = [];
+				el=document.getElementById(timezone);
+				if (!isNaN(timezoneHours) && !isNaN(timezoneMinutes))
+				{
+					var tzDifference = timezoneHours * 60 + timezoneMinutes + (new Date()).getTimezoneOffset();
+					var offset = tzDifference * 60 * 1000;
+					window.arrClocks.push(el);
+					window.arrOffsets.push(offset);
+				}
+				updateClocks();
+				clockID = setInterval(updateClocks, 1000);
+			}
+			
+			function getTimeDifference(date)
+			{
+				var now = new Date();
+				var day = date;
+
+				var difference = (now - day)/3600000;
+
+				if (difference < 0)
+				{
+					difference *= -1;
+				}
+				
+
+				return difference;
+			}
+	
+			
+
+			function dateToText(date)
+			{
+				var hours = date.getHours()
+				var minutes = date.getMinutes();
+				var seconds = date.getSeconds();
+				if (minutes < 10) minutes = '0'+minutes;
+				if  (seconds < 10) seconds = '0'+seconds;
+				if (hours < 10) hours = '0'+hours;
+				return hours + ":" + minutes + ":" + seconds;
+			}
+
+			function updateClocks()
+			{
+				for (var i = 0; i < window.arrClocks.length; i++)
+				{
+					var offset = window.arrOffsets[i];
+					document.getElementById("timezone").innerHTML = dateToText(new Date(new Date().getTime()+offset));
+					document.getElementById("difference").innerHTML = getTimeDifference(new Date(new Date().getTime()+offset));
+				}
+			}
+		});
+
+	var button = chart.createChild(am4core.SwitchButton);
+	button.align = "right";
+	button.marginTop = 5;
+	button.marginRight = 5;
+	button.valign = "top";
+	button.leftLabel.text = "Map";
+	button.rightLabel.text = "Globe";
+
+	button.events.on("toggled", function() {
+
+	  chart.deltaLatitude = 0;
+	  chart.deltaLongitude = 0;
+	  chart.deltaGamma = 0;
+
+	  if (button.isActive) {
+		chart.projection = new am4maps.projections.Orthographic;
+		chart.panBehavior = "rotateLongLat";
+	  }
+	  else {
+		chart.projection = new am4maps.projections.Miller;
+		chart.panBehavior = "none";
+	  }
+	})
+
+	polygonSeries.events.on("datavalidated", function() {
+	  labelSeries.data = polygonSeries.data;
+	})
+
+	}); // end am4core.ready()
+</script>
+</head>
+ 
+<body> 
+    <div class="JointBorder">
+		<div class="topnav">
+        <a class="active" href="timezones.html" target="_parent">Home</a>
+        <a href="about_us.html" target="_parent">About us</a>
+        <a href="qa.html" target="_parent">FAQ</a>
+		</div>
+        
+        <br>
+
+        <div class="timeDiv">    
+            <p id="timezone" class="time">Select a timezone</p>
+            <br>
+            <p style="font-size: 20px">Time difference between your local time and chosen time zone:</p>
+            <p id="difference" style="font-size: 50px">–</p>
+            <p style="font-size: large">hours</p>
+        </div>
+
+        <br>
+        <br>
+
+        <div id="chartdiv"></div>
+		<br>
+    </div>
+    
+</body>
+  
+</html>
